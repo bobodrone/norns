@@ -1,4 +1,7 @@
 -- aminor
+-- v1.0.0 @bobodrone
+-- llllllll.co/t/22222
+--
 -- a random sine note generator
 --
 -- notes drawn from the
@@ -58,9 +61,18 @@ local NOTE_SEMITONE = {
   b  = 11,
 }
 
--- octave range to pick from (4 octaves: 3, 4, 5, 6)
-local OCTAVE_MIN = 3
-local OCTAVE_MAX = 6
+-- the octaves we can choose from, each with a default weight.
+-- { octave number, default weight }  (weight 0 = octave never used)
+-- the runtime weight comes from the "octw_<n>" param.
+local OCTAVES = {
+  {1, 0},
+  {2, 0},
+  {3, 1},
+  {4, 1},
+  {5, 1},
+  {6, 1},
+  {7, 0},
+}
 
 -- how many voices are allowed at once
 local VOICES_MIN = 1
@@ -96,18 +108,36 @@ local function note_to_freq(name, octave)
   return musicutil.note_num_to_freq(midi)
 end
 
--- pick a note name using the live weight params.
+-- generic weighted pick over a list of { value=, weight= } entries.
 -- roll a number in [0, total) and walk the list subtracting weights.
-local function weighted_note()
+local function pick_weighted(entries)
   local total = 0
-  for _, n in ipairs(NOTES) do total = total + params:get("weight_" .. n[2]) end
-  if total <= 0 then return NOTES[1][1] end   -- all weights zeroed: fall back
+  for _, e in ipairs(entries) do total = total + e.weight end
+  if total <= 0 then return entries[1].value end   -- all zeroed: fall back
   local r = math.random() * total
-  for _, n in ipairs(NOTES) do
-    r = r - params:get("weight_" .. n[2])
-    if r <= 0 then return n[1] end
+  for _, e in ipairs(entries) do
+    r = r - e.weight
+    if r <= 0 then return e.value end
   end
-  return NOTES[#NOTES][1]   -- fallback (floating-point safety)
+  return entries[#entries].value   -- fallback (floating-point safety)
+end
+
+-- pick a note name using the live weight params.
+local function weighted_note()
+  local entries = {}
+  for _, n in ipairs(NOTES) do
+    entries[#entries + 1] = {value = n[1], weight = params:get("weight_" .. n[2])}
+  end
+  return pick_weighted(entries)
+end
+
+-- pick an octave using the live weight params.
+local function weighted_octave()
+  local entries = {}
+  for _, o in ipairs(OCTAVES) do
+    entries[#entries + 1] = {value = o[1], weight = params:get("octw_" .. o[1])}
+  end
+  return pick_weighted(entries)
 end
 
 -- pick a random float between the _min and _max params of a stage.
@@ -129,9 +159,9 @@ local function voice_loop()
       clock.sleep(rand_stage("pause"))
     end
 
-    -- weighted pitch + random octave -> frequency
+    -- weighted pitch + weighted octave -> frequency
     local name = weighted_note()
-    local octave = math.random(OCTAVE_MIN, OCTAVE_MAX)
+    local octave = weighted_octave()
     local freq = note_to_freq(name, octave)
 
     -- random duration for each envelope stage
@@ -213,6 +243,13 @@ function init()
   for _, n in ipairs(NOTES) do
     local name, id, default = table.unpack(n)
     params:add_number("weight_" .. id, "weight " .. name, 0, 20, default)
+  end
+
+  -- one integer weight per octave (0 = octave never used).
+  params:add_separator("octave weights")
+  for _, o in ipairs(OCTAVES) do
+    local octave, default = table.unpack(o)
+    params:add_number("octw_" .. octave, "weight oct " .. octave, 0, 20, default)
   end
 
   -- push the starting master amplitude to the engine

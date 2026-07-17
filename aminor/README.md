@@ -17,7 +17,7 @@ that drift out of sync with each other.
 ## What one voice does each cycle
 
 1. pick a **weighted** random pitch (see weights below)
-2. pick a random octave (3–6, four octaves)
+2. pick a **weighted** random octave (see octave weights below)
 3. fade in from amplitude **0** to **0.5**
 4. sustain
 5. fade out
@@ -36,6 +36,7 @@ Everything below lives under **PARAMS > EDIT** and is saved with the pset:
 - **envelope (seconds)** — a **min** and **max** for each of fade in, sustain,
   fade out, and pause. Set min = max to make a stage fixed.
 - **note weights** — an integer weight (0–20) per note; see below.
+- **octave weights** — an integer weight (0–20) per octave (1–7); see below.
 
 ### Note weights
 
@@ -55,6 +56,13 @@ Pitches are not chosen evenly — each has a weight set under
 The weights don't need to sum to any particular total — the script totals them
 at pick time. Set a weight to **0** to drop that note entirely (if you zero all
 of them it falls back to `a`).
+
+### Octave weights
+
+Octaves work exactly like note weights, under **PARAMS > octave weights**.
+Octaves **1–7** are available; by default **3, 4, 5, 6** have weight 1 (the
+original four-octave range) and the rest are **0** (off). Raise an octave's
+weight to make it more likely, or set it to **0** to exclude it.
 
 ### Voices (E2)
 
