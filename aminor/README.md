@@ -104,7 +104,7 @@ edit `Engine_SineNote.sc`, you must reload the script (or restart audio) for
 SuperCollider to pick up the change — editing only the `.lua` just needs a
 script reload.
 
-## Things to try (to keep learning)
+## Things to try
 
 - Change the wave: swap `SinOsc` for `Saw` or `Pulse` in the engine.
 - Auto-scale the level by voice count (e.g. divide by `sqrt(voices)`) so the
