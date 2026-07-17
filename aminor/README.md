@@ -9,8 +9,8 @@ that drift out of sync with each other.
 
 ## Controls
 
-- **K2** — start
-- **K3** — stop
+- **K3** — start
+- **K2** — stop
 - **E2** — number of simultaneous voices (**1–42**, starts at 1)
 - **E3** — master amplitude / overall mix level (0.00–1.00)
 
@@ -116,7 +116,7 @@ Copy this whole `aminor` folder into your norns at:
 
 (e.g. over the WiFi/USB `dust` share, or `scp -r aminor we@norns.local:~/dust/code/`)
 
-Then on the norns: **SELECT > aminor**, and press **K2** to start.
+Then on the norns: **SELECT > aminor**, and press **K3** to start.
 
 The `.sc` engine is compiled by SuperCollider when the script loads. If you
 edit `Engine_SineNote.sc`, you must reload the script (or restart audio) for

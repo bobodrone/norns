@@ -14,8 +14,8 @@
 --
 -- E2 : number of voices (1-42)
 -- E3 : master amplitude
--- K2 : start
--- K3 : stop
+-- K3 : start
+-- K2 : stop
 
 -- Tell norns which SuperCollider engine to load.
 -- This must match the class name Engine_SineNote in Engine_SineNote.sc
@@ -276,9 +276,9 @@ end
 -- keys: n = which key (1,2,3), z = 1 pressed / 0 released
 function key(n, z)
   if z == 1 then
-    if n == 2 then
+    if n == 3 then
       start()
-    elseif n == 3 then
+    elseif n == 2 then
       stop()
     end
   end
@@ -303,7 +303,7 @@ function redraw()
 
   screen.level(3)
   screen.move(0, 62)
-  screen.text("E2 voices  E3 amp  K2/3 go")
+  screen.text("E2 voices  E3 amp  K3 start")
 
   screen.update()
 end
