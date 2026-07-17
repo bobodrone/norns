@@ -7,8 +7,8 @@ both double as readable examples of the norns ⇄ SuperCollider split.
 
 | Patch | What it is | Sound |
 |-------|-----------|-------|
-| [`aminor`](./aminor) | A weighted **random note generator** in the A harmonic minor scale. | Layered long tones (sine/saw/pulse) fading in and out, forever. |
-| [`drifting`](./drifting) | A 21-oscillator **additive drone** — one fundamental plus its harmonics, reshaped live. | Evolving overtone drones, from pure sine to buzzing to shimmering clusters. |
+| [`aminor`](https://github.com/bobodrone/aminor) | A weighted **random note generator** in the A harmonic minor scale. | Layered long tones (sine/saw/pulse) fading in and out, forever. |
+| [`drifting`](https://github.com/bobodrone/drifting) | A 21-oscillator **additive drone** — one fundamental plus its harmonics, reshaped live. | Evolving overtone drones, from pure sine to buzzing to shimmering clusters. |
 
 Each folder has its own detailed `README.md`; the summaries below are the quick tour.
 
@@ -28,7 +28,7 @@ fading in, sustaining, fading out, and pausing.
   **weighted** note + octave probabilities (7 notes × 6 octaves = 42 tones).
 
 Good for slowly shifting, semi-random tonal beds. See
-[`aminor/README.md`](./aminor/README.md).
+[`aminor/README.md`](https://github.com/bobodrone/aminor/blob/main/README.md).
 
 ## drifting
 
@@ -47,7 +47,7 @@ real time.
   partials don't phase-lock into a "motorboat" pulse), and LFO speeds/depths.
 
 Good for glacial, mutating overtone textures. See
-[`drifting/README.md`](./drifting/README.md).
+[`drifting/README.md`](https://github.com/bobodrone/drifting/blob/main/README.md).
 
 ---
 
