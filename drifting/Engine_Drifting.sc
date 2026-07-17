@@ -1,6 +1,6 @@
-// Engine_Overtone.sc
+// Engine_Drifting.sc
 //
-// The SuperCollider side of the "overtone" norns script.
+// The SuperCollider side of the "drifting" norns script.
 // One persistent synth holds all 21 sine oscillators. Three control
 // values shape it live:
 //   base    - the fundamental frequency of oscillator 1 (Hz)
@@ -11,7 +11,7 @@
 //   amp     - overall master level
 // A single gate fades the whole drone in and out (K3 on the norns).
 
-Engine_Overtone : CroneEngine {
+Engine_Drifting : CroneEngine {
 
 	// keep a reference to the one drone synth so commands can .set it live.
 	var <synth;
@@ -22,7 +22,7 @@ Engine_Overtone : CroneEngine {
 
 	alloc {
 
-		SynthDef("overtone", {
+		SynthDef("drifting", {
 			arg base = 110, spacing = 1.0, dist = 0.0, amp = 0.3,
 			    drift = 0.3, gate = 0, out = 0;
 
@@ -85,7 +85,7 @@ Engine_Overtone : CroneEngine {
 
 		// create the one drone synth, silent (gate 0) until K3.
 		synth = Synth.new(
-			"overtone",
+			"drifting",
 			[\gate, 0, \out, context.out_b.index],
 			context.xg
 		);

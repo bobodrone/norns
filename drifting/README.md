@@ -1,4 +1,4 @@
-# overtone
+# drifting
 
 A norns additive **drone**: 21 sine oscillators sounding at once. Oscillator 1
 is the **fundamental**; the other 20 are its **harmonics**. Three encoders
@@ -95,11 +95,11 @@ The bar graph shows all 21 partials — bar height is each oscillator's amplitud
 
 | File | Language | Role |
 |------|----------|------|
-| `Engine_Overtone.sc` | SuperCollider | One persistent synth with all 21 `SinOsc`s. Reads `base`, `spacing`, `dist`, `amp` (all lagged/smoothed) and a `gate`. Exposes `setBase`, `setSpace`, `setDist`, `setAmp`, `setGate`. |
-| `overtone.lua` | Lua | UI + logic: encoders/keys, the spectrum readout, and the engine calls. |
+| `Engine_Drifting.sc` | SuperCollider | One persistent synth with all 21 `SinOsc`s. Reads `base`, `spacing`, `dist`, `amp` (all lagged/smoothed) and a `gate`. Exposes `setBase`, `setSpace`, `setDist`, `setAmp`, `setGate`. |
+| `drifting.lua` | Lua | UI + logic: encoders/keys, the spectrum readout, and the engine calls. |
 
-Linked by the matching names `engine.name = "Overtone"` (Lua) and
-`Engine_Overtone : CroneEngine` (SC).
+Linked by the matching names `engine.name = "Drifting"` (Lua) and
+`Engine_Drifting : CroneEngine` (SC).
 
 The drone synth is created **once** when the engine loads and lives for the
 whole session — gating it off just fades it to silence, so E1/E2/E3 keep
@@ -107,14 +107,14 @@ shaping it even while muted, and turning it back on is instant.
 
 ## Install
 
-Copy this whole `overtone` folder into your norns at:
+Copy this whole `drifting` folder into your norns at:
 
 ```
-~/dust/code/overtone/
+~/dust/code/drifting/
 ```
 
-Then on the norns: **SELECT > overtone**, press **K3** to start, and turn the
-encoders. If you edit `Engine_Overtone.sc` you must reload the script (or
+Then on the norns: **SELECT > drifting**, press **K3** to start, and turn the
+encoders. If you edit `Engine_Drifting.sc` you must reload the script (or
 restart audio) for SuperCollider to pick up the change.
 
 ## Things to try

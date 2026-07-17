@@ -1,4 +1,4 @@
--- overtone
+-- drifting
 -- v1.0.0 @bobodrone
 -- llllllll.co/t/22222
 --
@@ -22,8 +22,8 @@
 -- tilt and spacing on their own.
 -- their DEPTH is set in PARAMS.
 
--- must match Engine_Overtone in Engine_Overtone.sc
-engine.name = "Overtone"
+-- must match Engine_Drifting in Engine_Drifting.sc
+engine.name = "Drifting"
 
 local controlspec = require "controlspec"
 local util = require "util"
@@ -252,7 +252,7 @@ function redraw()
   -- header
   screen.level(15)
   screen.move(0, 8)
-  screen.text("overtone")
+  screen.text("drifting")
   screen.level(droning and 15 or 3)
   screen.move(128, 8)
   screen.text_right(droning and "playing" or "muted")
