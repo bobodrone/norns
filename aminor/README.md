@@ -14,6 +14,14 @@ that drift out of sync with each other.
 - **E2** — number of simultaneous voices (**1–42**, starts at 1)
 - **E3** — master amplitude / overall mix level (0.00–1.00)
 
+Pressing **K2** stops scheduling new notes but lets any sounding notes finish
+their fade-out. While they ring out the screen shows **`stopping..`**, and once
+the last note has fully ended it shows **`The End`**.
+
+**Impatient?** Press **K2 again while it's `stopping..`** for a **fast
+fade-out** — all sounding notes are released together over ~1.5 s (set by
+`FAST_FADE` in `aminor.lua`) instead of finishing their full envelopes.
+
 ## What one voice does each cycle
 
 1. pick a **weighted** random pitch (see weights below)
@@ -80,7 +88,7 @@ them.
 
 | File | Language | Role |
 |------|----------|------|
-| `Engine_SineNote.sc` | SuperCollider | Makes the sound. Defines the oscillator + envelope `SynthDef` (sine/saw/pulse via `Select.ar`), a shared master-amplitude bus, and exposes `playNote(freq, fadeIn, sustain, fadeOut, wave)` and `setAmp(level)`. |
+| `Engine_SineNote.sc` | SuperCollider | Makes the sound. Defines the oscillator + envelope `SynthDef` (sine/saw/pulse via `Select.ar`), a shared master-amplitude bus, and a gated release for the fast fade-out. Exposes `playNote(freq, fadeIn, sustain, fadeOut, wave)`, `setAmp(level)`, and `releaseAll(relTime)`. |
 | `aminor.lua` | Lua | The interface + logic. Handles keys/encoders, draws the screen, picks weighted notes, runs the voice loops, and calls the engine commands. |
 
 They are linked by two matching names:

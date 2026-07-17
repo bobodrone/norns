@@ -36,10 +36,12 @@ Engine_SineNote : CroneEngine {
 			    sustain = 10,
 			    fadeOut = 5,
 			    wave = 0,     // 0 = sine, 1 = saw, 2 = pulse
+			    gate = 1,     // 1 = normal; set to 0 to fast-release
+			    relTime = 1.5,// seconds for the fast release
 			    ampBus = 0,
 			    out = 0;
 
-			var env, master, sig;
+			var env, rel, master, sig;
 
 			env = EnvGen.kr(
 				Env.new(
@@ -48,6 +50,15 @@ Engine_SineNote : CroneEngine {
 					curve:  \sin            // smooth S-curve fades
 				),
 				doneAction: Done.freeSelf   // == 2, frees synth at the end
+			);
+
+			// a second envelope that sits at 1 while gate is held, and ramps
+			// to 0 over relTime when gate is released (0). that gives us the
+			// optional "fast fade-out" without clicking, and frees the synth.
+			rel = EnvGen.kr(
+				Env.asr(0, 1, relTime, \sin),
+				gate,
+				doneAction: Done.freeSelf
 			);
 
 			// read the current master amplitude from the control bus
@@ -61,7 +72,7 @@ Engine_SineNote : CroneEngine {
 				Pulse.ar(freq)
 			]);
 
-			sig = sig * env * master;
+			sig = sig * env * rel * master;
 
 			// send the same signal to left and right
 			Out.ar(out, [sig, sig]);
@@ -91,6 +102,13 @@ Engine_SineNote : CroneEngine {
 		// engine.setAmp(level) -- live master amplitude for the whole mix.
 		this.addCommand("setAmp", "f", { arg msg;
 			ampBus.set(msg[1]);
+		});
+
+		// engine.releaseAll(relTime) -- fast fade-out: release EVERY sounding
+		// note over relTime seconds. Sets the controls on all synths in the
+		// engine group at once, then each frees itself when its release ends.
+		this.addCommand("releaseAll", "f", { arg msg;
+			context.xg.set(\relTime, msg[1], \gate, 0);
 		});
 	}
 

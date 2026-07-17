@@ -15,7 +15,8 @@
 -- E2 : number of voices (1-42)
 -- E3 : master amplitude
 -- K3 : start
--- K2 : stop
+-- K2 : stop (press again while
+--      stopping for a fast fade-out)
 
 -- Tell norns which SuperCollider engine to load.
 -- This must match the class name Engine_SineNote in Engine_SineNote.sc
@@ -78,6 +79,9 @@ local OCTAVES = {
 local VOICES_MIN = 1
 local VOICES_MAX = 42
 
+-- seconds for the "fast fade-out" (second K2 press while stopping)
+local FAST_FADE = 1.5
+
 -- the envelope stages we expose as min/max params.
 -- { id, display name, spec min, spec max, default min, default max }
 local STAGES = {
@@ -91,11 +95,14 @@ local STAGES = {
 -- state
 -- ----------------------------------------------------------------------
 
-local playing = false        -- are we currently running?
 local voices  = {}           -- clock ids of the active voice loops
+local n_live  = 0            -- how many voice loops are still alive
 local target_voices = 1      -- how many voices we want (E2)
 local master_amp = 0.5       -- overall level (E3)
 local last_note = ""         -- text of the most recently triggered note
+local playing  = false       -- generating new notes?
+local stopping = false       -- stopped, but notes still fading out
+local ended    = false       -- everything has finished ("The End")
 
 -- ----------------------------------------------------------------------
 -- helpers
@@ -149,14 +156,30 @@ local function rand_stage(id)
   return lo + math.random() * (hi - lo)
 end
 
--- one voice: forever picks a note, rolls its envelope, plays it, waits.
+-- called when a voice loop has finished (it and its last note are done).
+-- when the final voice ends during a stop, flip the display to "The End".
+local function voice_ended()
+  n_live = n_live - 1
+  if stopping and n_live <= 0 then
+    stopping = false
+    ended = true
+    last_note = ""
+    voices = {}
+    redraw()
+  end
+end
+
+-- one voice: while playing, picks a note, rolls its envelope, plays it, waits.
 -- each voice runs as its own clock coroutine, so voices are independent.
+-- when `playing` goes false it finishes the note it is on, then exits, which
+-- is exactly when that note's audio ends.
 local function voice_loop()
-  while true do
+  while playing do
     -- with more than one voice, pause BEFORE the note so the voices
     -- start at different times and drift out of sync with each other.
     if target_voices > 1 then
       clock.sleep(rand_stage("pause"))
+      if not playing then break end   -- stopped during the pause: no new note
     end
 
     -- weighted pitch + weighted octave -> frequency
@@ -176,14 +199,23 @@ local function voice_loop()
     engine.playNote(freq, fade_in, sustain, fade_out, wave)
     redraw()
 
-    -- wait out the whole note (the engine's envelope does the fades)
+    -- wait out the whole note (the engine's envelope does the fades).
+    -- if stop was pressed we still let THIS note finish, then exit.
     clock.sleep(fade_in + sustain + fade_out)
+    if not playing then break end
 
     -- for a single voice keep the original trailing pause
     if target_voices <= 1 then
       clock.sleep(rand_stage("pause"))
     end
   end
+  voice_ended()
+end
+
+-- spawn one voice coroutine and track it.
+local function spawn_voice()
+  n_live = n_live + 1
+  table.insert(voices, clock.run(voice_loop))
 end
 
 -- start/stop individual voice coroutines so #voices == target_voices.
@@ -191,17 +223,23 @@ end
 local function match_voices()
   if not playing then return end
   while #voices < target_voices do
-    table.insert(voices, clock.run(voice_loop))
+    spawn_voice()
   end
   while #voices > target_voices do
-    clock.cancel(table.remove(voices))
+    clock.cancel(table.remove(voices))   -- killed: won't call voice_ended
+    n_live = n_live - 1
   end
 end
 
 local function start()
   if playing then return end
-  playing = true
+  -- if we were mid-stop, drop any lingering voices and start fresh.
+  for _, id in ipairs(voices) do clock.cancel(id) end
   voices = {}
+  n_live = 0
+  playing = true
+  stopping = false
+  ended = false
   match_voices()
   redraw()
 end
@@ -209,11 +247,42 @@ end
 local function stop()
   if not playing then return end
   playing = false
+  stopping = true
+  ended = false
+  -- don't cancel: each voice finishes its current note (letting the audio
+  -- fade out naturally) then exits. voice_ended() shows "The End" when the
+  -- last one is done. Handle the corner case of no live voices right away.
+  if n_live <= 0 then
+    stopping = false
+    ended = true
+    voices = {}
+  end
+  redraw()
+end
+
+-- fast fade-out: cut scheduling immediately and release every sounding note
+-- over FAST_FADE seconds, rather than letting notes finish their envelopes.
+local function fast_stop()
+  if not (playing or stopping) then return end
+  playing = false
+  -- cancel the voice loops so nothing waits for full envelopes anymore
   for _, id in ipairs(voices) do clock.cancel(id) end
   voices = {}
-  last_note = ""
-  -- notes already sounding will finish their envelopes naturally.
-  redraw()
+  n_live = 0
+  stopping = true
+  ended = false
+  redraw()                       -- keeps showing "stopping.."
+  engine.releaseAll(FAST_FADE)   -- tell the engine to fade all notes out
+  -- flip to "The End" once the fade has finished
+  clock.run(function()
+    clock.sleep(FAST_FADE + 0.1)
+    if stopping then
+      stopping = false
+      ended = true
+      last_note = ""
+      redraw()
+    end
+  end)
 end
 
 -- ----------------------------------------------------------------------
@@ -279,7 +348,13 @@ function key(n, z)
     if n == 3 then
       start()
     elseif n == 2 then
-      stop()
+      -- first K2 press: graceful stop (notes finish their envelopes).
+      -- second K2 press (while stopping): fast fade-out.
+      if playing then
+        stop()
+      elseif stopping then
+        fast_stop()
+      end
     end
   end
 end
@@ -291,9 +366,20 @@ function redraw()
   screen.move(0, 10)
   screen.text("aminor")
 
+  -- status line: playing -> Morendo.. -> The End (or "stopped" at rest)
+  local status, bright
+  if playing then
+    status, bright = "playing  (" .. last_note .. ")", 15
+  elseif stopping then
+    status, bright = "Morendo..", 8
+  elseif ended then
+    status, bright = "The End", 15
+  else
+    status, bright = "stopped", 4
+  end
   screen.move(0, 24)
-  screen.level(playing and 15 or 4)
-  screen.text(playing and ("playing  (" .. last_note .. ")") or "stopped")
+  screen.level(bright)
+  screen.text(status)
 
   screen.level(6)
   screen.move(0, 38)
