@@ -5,9 +5,9 @@
 -- A harmonic minor scale (weighted):
 -- a b c d e f g#
 --
--- envelope timing is randomised
--- per note between min/max
--- values in the PARAMS menu.
+-- waveform, envelope min/max and
+-- note weights are set in the
+-- PARAMS menu.
 --
 -- E2 : number of voices (1-40)
 -- E3 : master amplitude
@@ -29,17 +29,23 @@ local util = require "util"
 -- configuration
 -- ----------------------------------------------------------------------
 
--- the pitches we can choose from, each with a selection weight.
+-- the pitches we can choose from, each with a default selection weight.
+-- { display name, param-safe id, default weight }
 -- higher weight = picked more often. these need not sum to any total.
+-- the actual weight used at runtime comes from the "weight_<id>" param.
 local NOTES = {
-  {"a",  5},
-  {"b",  1},
-  {"c",  2},
-  {"d",  2},
-  {"e",  3},
-  {"f",  1},
-  {"g#", 1},
+  {"a",  "a",  5},
+  {"b",  "b",  1},
+  {"c",  "c",  2},
+  {"d",  "d",  2},
+  {"e",  "e",  3},
+  {"f",  "f",  1},
+  {"g#", "gs", 1},
 }
+
+-- the oscillator waveforms the "waveform" param can choose between.
+-- the index (1-based here) maps to the engine's `wave` arg as index-1.
+local WAVES = {"sine", "saw", "pulse"}
 
 -- semitone offset of each note relative to C within one octave
 local NOTE_SEMITONE = {
@@ -90,14 +96,15 @@ local function note_to_freq(name, octave)
   return musicutil.note_num_to_freq(midi)
 end
 
--- pick a note name using the weights in the NOTES table.
+-- pick a note name using the live weight params.
 -- roll a number in [0, total) and walk the list subtracting weights.
 local function weighted_note()
   local total = 0
-  for _, n in ipairs(NOTES) do total = total + n[2] end
+  for _, n in ipairs(NOTES) do total = total + params:get("weight_" .. n[2]) end
+  if total <= 0 then return NOTES[1][1] end   -- all weights zeroed: fall back
   local r = math.random() * total
   for _, n in ipairs(NOTES) do
-    r = r - n[2]
+    r = r - params:get("weight_" .. n[2])
     if r <= 0 then return n[1] end
   end
   return NOTES[#NOTES][1]   -- fallback (floating-point safety)
@@ -132,8 +139,11 @@ local function voice_loop()
     local sustain  = rand_stage("sustain")
     local fade_out = rand_stage("fade_out")
 
+    -- current waveform (param is 1-based; engine wants 0-based)
+    local wave = params:get("waveform") - 1
+
     last_note = name .. octave
-    engine.playNote(freq, fade_in, sustain, fade_out)
+    engine.playNote(freq, fade_in, sustain, fade_out, wave)
     redraw()
 
     -- wait out the whole note (the engine's envelope does the fades)
@@ -183,6 +193,10 @@ end
 function init()
   math.randomseed(os.time())
 
+  -- oscillator waveform (shared by every note).
+  params:add_separator("oscillator")
+  params:add_option("waveform", "waveform", WAVES, 1)
+
   -- one min + one max control param per envelope stage.
   -- these show up under PARAMS > EDIT and are saved with the pset.
   params:add_separator("envelope (seconds)")
@@ -192,6 +206,13 @@ function init()
       controlspec.new(lo, hi, "lin", 0.1, dmin, "s"))
     params:add_control(id .. "_max", name .. " max",
       controlspec.new(lo, hi, "lin", 0.1, dmax, "s"))
+  end
+
+  -- one integer weight per note (0 = never played).
+  params:add_separator("note weights")
+  for _, n in ipairs(NOTES) do
+    local name, id, default = table.unpack(n)
+    params:add_number("weight_" .. id, "weight " .. name, 0, 20, default)
   end
 
   -- push the starting master amplitude to the engine
@@ -239,7 +260,7 @@ function redraw()
 
   screen.level(6)
   screen.move(0, 38)
-  screen.text("voices: " .. target_voices)
+  screen.text("voices: " .. target_voices .. "   wave: " .. WAVES[params:get("waveform")])
   screen.move(0, 48)
   screen.text(string.format("amp: %.2f", master_amp))
 

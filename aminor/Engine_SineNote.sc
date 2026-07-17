@@ -35,6 +35,7 @@ Engine_SineNote : CroneEngine {
 			    fadeIn = 8,
 			    sustain = 10,
 			    fadeOut = 5,
+			    wave = 0,     // 0 = sine, 1 = saw, 2 = pulse
 			    ampBus = 0,
 			    out = 0;
 
@@ -52,7 +53,15 @@ Engine_SineNote : CroneEngine {
 			// read the current master amplitude from the control bus
 			master = In.kr(ampBus);
 
-			sig = SinOsc.ar(freq) * env * master;
+			// pick the oscillator by index. Select.ar builds all three and
+			// outputs the one chosen by `wave`.
+			sig = Select.ar(wave, [
+				SinOsc.ar(freq),
+				Saw.ar(freq),
+				Pulse.ar(freq)
+			]);
+
+			sig = sig * env * master;
 
 			// send the same signal to left and right
 			Out.ar(out, [sig, sig]);
@@ -61,9 +70,9 @@ Engine_SineNote : CroneEngine {
 		// Make sure the SynthDef is registered before any command uses it.
 		context.server.sync;
 
-		// engine.playNote(freq, fadeIn, sustain, fadeOut)
-		// "ffff" = four float arguments.
-		this.addCommand("playNote", "ffff", { arg msg;
+		// engine.playNote(freq, fadeIn, sustain, fadeOut, wave)
+		// "fffff" = five float arguments.
+		this.addCommand("playNote", "fffff", { arg msg;
 			Synth.new(
 				"sineNote",
 				[
@@ -71,6 +80,7 @@ Engine_SineNote : CroneEngine {
 					\fadeIn,  msg[2],
 					\sustain, msg[3],
 					\fadeOut, msg[4],
+					\wave,    msg[5],
 					\ampBus,  ampBus.index,   // tell the synth which bus to read
 					\out,     context.out_b.index
 				],
