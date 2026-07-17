@@ -12,7 +12,7 @@
 -- note weights are set in the
 -- PARAMS menu.
 --
--- E2 : number of voices (1-40)
+-- E2 : number of voices (1-42)
 -- E3 : master amplitude
 -- K2 : start
 -- K3 : stop
@@ -64,6 +64,7 @@ local NOTE_SEMITONE = {
 -- the octaves we can choose from, each with a default weight.
 -- { octave number, default weight }  (weight 0 = octave never used)
 -- the runtime weight comes from the "octw_<n>" param.
+-- 7 notes x 6 octaves = 42 possible tones.
 local OCTAVES = {
   {1, 0},
   {2, 0},
@@ -71,12 +72,11 @@ local OCTAVES = {
   {4, 1},
   {5, 1},
   {6, 1},
-  {7, 0},
 }
 
 -- how many voices are allowed at once
 local VOICES_MIN = 1
-local VOICES_MAX = 40
+local VOICES_MAX = 42
 
 -- the envelope stages we expose as min/max params.
 -- { id, display name, spec min, spec max, default min, default max }

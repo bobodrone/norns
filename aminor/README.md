@@ -11,7 +11,7 @@ that drift out of sync with each other.
 
 - **K2** — start
 - **K3** — stop
-- **E2** — number of simultaneous voices (**1–40**, starts at 1)
+- **E2** — number of simultaneous voices (**1–42**, starts at 1)
 - **E3** — master amplitude / overall mix level (0.00–1.00)
 
 ## What one voice does each cycle
@@ -36,7 +36,7 @@ Everything below lives under **PARAMS > EDIT** and is saved with the pset:
 - **envelope (seconds)** — a **min** and **max** for each of fade in, sustain,
   fade out, and pause. Set min = max to make a stage fixed.
 - **note weights** — an integer weight (0–20) per note; see below.
-- **octave weights** — an integer weight (0–20) per octave (1–7); see below.
+- **octave weights** — an integer weight (0–20) per octave (1–6); see below.
 
 ### Note weights
 
@@ -60,9 +60,10 @@ of them it falls back to `a`).
 ### Octave weights
 
 Octaves work exactly like note weights, under **PARAMS > octave weights**.
-Octaves **1–7** are available; by default **3, 4, 5, 6** have weight 1 (the
-original four-octave range) and the rest are **0** (off). Raise an octave's
-weight to make it more likely, or set it to **0** to exclude it.
+Octaves **1–6** are available (7 notes × 6 octaves = **42** possible tones);
+by default **3, 4, 5, 6** have weight 1 (the original four-octave range) and
+the rest are **0** (off). Raise an octave's weight to make it more likely, or
+set it to **0** to exclude it.
 
 ### Voices (E2)
 
@@ -72,7 +73,7 @@ With **more than one voice**, a random pause is applied **before** each note
 Turning E2 up while playing spawns more voices live; turning it down removes
 them.
 
-> Many voices add up. 40 notes each peaking at 0.5 will clip hard — use
+> Many voices add up. 42 notes each peaking at 0.5 will clip hard — use
 > **E3** to pull the master level down as you raise the voice count.
 
 ## The two files
