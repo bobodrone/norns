@@ -1,14 +1,16 @@
 # norns patches
 
 A small collection of [norns](https://monome.org/docs/norns/) scripts by
-@bobodrone, each a self-contained Lua UI + SuperCollider engine. Both are drone
-/ generative sound tools built around plain sine (and friends) oscillators, and
-both double as readable examples of the norns ⇄ SuperCollider split.
+@bobodrone, each a self-contained Lua UI + SuperCollider engine, and each a
+readable example of the norns ⇄ SuperCollider split. Two are drone / generative
+sound tools built around plain sine (and friends) oscillators; one is a
+real-time effect that mangles the audio inputs.
 
 | Patch | What it is | Sound |
 |-------|-----------|-------|
 | [`aminor`](https://github.com/bobodrone/aminor) | A weighted **random note generator** in the A harmonic minor scale. | Layered long tones (sine/saw/pulse) fading in and out, forever. |
 | [`drifting`](https://github.com/bobodrone/drifting) | A 21-oscillator **additive drone** — one fundamental plus its harmonics, reshaped live. | Evolving overtone drones, from pure sine to buzzing to shimmering clusters. |
+| [`illfanas`](https://github.com/bobodrone/illfanas) | A real-time stereo **input mangler** that flips the signal toward the amplitude rails. | Hard, wavefolder-ish distortion, from subtle grit to brutal near-square. |
 
 Each folder has its own detailed `README.md`; the summaries below are the quick tour.
 
@@ -49,6 +51,26 @@ real time.
 Good for glacial, mutating overtone textures. See
 [`drifting/README.md`](https://github.com/bobodrone/drifting/blob/main/README.md).
 
+## illfanas
+
+*Old Swedish for "make a racket".* A real-time **input mangler**: it reads the
+two audio inputs, flips every sample toward the `±1` amplitude rails while
+keeping its sign (`flip(x) = sign(x)·(warp − |x|)`), and sends the result back
+out — so quiet parts get thrown loud and loud parts pulled quiet.
+
+- **E1** — combined **DJ filter** (CCW lowpass · 12 o'clock thru · CW highpass).
+- **E2** — **warp**: how extreme the flip is (`0` mild → `1` the flip → `2`
+  brutal, near-square).
+- **E3** — dry / wet **mix** (`0` = untouched input, `1` = fully flipped).
+- **K2+E2** — filter resonance · **K3** — kill: a ~5 s fade of the mix back to
+  the dry signal (press again to fade back up).
+- **PARAMS** — output level, filter resonance.
+
+Warp and mix both start at **0**, so twist **E2** and **E3** up until happiness
+appears. The script does its own dry/wet inside the engine and mutes norns'
+input monitor so you don't hear the raw signal twice. See
+[`illfanas/README.md`](https://github.com/bobodrone/illfanas/blob/main/README.md).
+
 ---
 
 ## How a norns patch is built
@@ -73,7 +95,8 @@ Copy a patch folder into your norns at `~/dust/code/`:
 scp -r drifting we@norns.local:~/dust/code/
 ```
 
-Then on the device: **SELECT > drifting** (or **aminor**), and press **K3**.
+Then on the device: **SELECT > drifting** (or **aminor** / **illfanas**), and
+press **K3**.
 
 ## License
 
