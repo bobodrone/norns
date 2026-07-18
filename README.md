@@ -51,7 +51,7 @@ real time.
 Good for glacial, mutating overtone textures. See
 [`drifting/README.md`](https://github.com/bobodrone/drifting/blob/main/README.md).
 
-## illfanas
+## illfänas
 
 *Old Swedish for "make a racket".* A real-time **input mangler**: it reads the
 two audio inputs, flips every sample toward the `±1` amplitude rails while
