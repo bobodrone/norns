@@ -62,7 +62,8 @@ out — so quiet parts get thrown loud and loud parts pulled quiet.
 - **E2** — **warp**: how extreme the flip is (`0` mild → `1` the flip → `2`
   brutal, near-square).
 - **E3** — dry / wet **mix** (`0` = untouched input, `1` = fully flipped).
-- **K2+E2** — filter resonance · **K3** — kill: a ~5 s fade of the mix back to
+- **K2+E2** — filter resonance
+- **K3** — kill: a ~5 s fade of the mix back to
   the dry signal (press again to fade back up).
 - **PARAMS** — output level, filter resonance.
 
